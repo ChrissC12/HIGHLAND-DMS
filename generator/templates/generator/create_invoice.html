@@ -1,0 +1,202 @@
+<!-- generator/templates/generator/create_invoice.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create New Invoice{% endblock %}
+
+{% block extra_css %}
+<!-- Styles for the invoice creation form -->
+<style>
+    .form-section-card {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .form-section-card .card-header {
+        background-color: var(--hc-dark);
+        color: var(--hc-gold);
+    }
+    .item-form .form-control {
+        margin-bottom: 0.5rem;
+    }
+    .delete-checkbox-label {
+        font-size: 0.75rem;
+        color: var(--hc-red);
+        display: block;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Create a New Invoice</h1>
+        <p class="lead text-muted">Fill in all the details below to generate a professional invoice.</p>
+    </div>
+
+    <form method="post" id="invoice-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Left Column: Main Details -->
+            <div class="col-lg-8">
+                <!-- Invoice & Client Details Card -->
+                <div class="card form-section-card mb-4">
+                    <div class="card-header"><h5 class="mb-0">Invoice & Client Details</h5></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="invoice_number" class="form-label fw-bold">Invoice Number</label>
+                                <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="issue_date" class="form-label fw-bold">Issue Date</label>
+                                <input type="date" class="form-control" id="issue_date" name="issue_date" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="due_date" class="form-label fw-bold">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="client_name" class="form-label fw-bold">Client Name</label>
+                            <input type="text" class="form-control" id="client_name" name="client_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="client_address" class="form-label fw-bold">Client Address</label>
+                            <textarea class="form-control" id="client_address" name="client_address" rows="3" required></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items Card -->
+                <div class="card form-section-card">
+                    <div class="card-header"><h5 class="mb-0">Invoice Items</h5></div>
+                    <div class="card-body">
+                        <!-- Error Display Block -->
+                        {% if formset.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Please correct the errors below:</strong>
+                                {{ formset.non_form_errors }}
+                                {% for form in formset %}{% if form.errors %}<p class="my-1"><strong>Item {{ forloop.counter }}:</strong> {{ form.errors.as_ul }}</p>{% endif %}{% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {{ formset.management_form }}
+                        <div id="item-form-container">
+                            {% for form in formset %}
+                            <div class="row item-form mb-3 gx-2 align-items-end" id="item-{{ forloop.counter0 }}">
+                                <div class="col-md-5"><label class="form-label small">Description</label>{{ form.description }}</div>
+                                <div class="col-md-2"><label class="form-label small">Quantity</label>{{ form.quantity }}</div>
+                                <div class="col-md-2"><label class="form-label small">Unit Price</label>{{ form.unit_price }}</div>
+                                <div class="col-md-2"><label class="form-label small">Total</label><input type="text" class="form-control form-control-sm item-total" readonly></div>
+                                <div class="col-md-1 text-center">{% if form.instance.pk %}<label class="form-label small delete-checkbox-label">Delete?</label>{{ form.DELETE }}{% endif %}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" id="add-item-btn" class="btn btn-outline-secondary btn-sm mt-2"><i class="fas fa-plus me-1"></i>Add Item</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Summary & Comments -->
+            <div class="col-lg-4">
+                <div class="card form-section-card" style="position: sticky; top: 100px;">
+                    <div class="card-header"><h5 class="mb-0">Summary & Terms</h5></div>
+                    <div class="card-body">
+                        <div class="mb-3"><label for="tax_rate" class="form-label fw-bold">Tax Rate (%)</label><input type="number" class="form-control" id="tax_rate" name="tax_rate" value="0" step="0.01"></div>
+                        <hr>
+                        <div class="mb-3"><label for="terms_of_payment" class="form-label fw-bold">Terms of Payment</label><input type="text" class="form-control" id="terms_of_payment" name="terms_of_payment"></div>
+                        <div class="mb-3"><label for="other_comments" class="form-label fw-bold">Other Comments</label><textarea class="form-control" id="other_comments" name="other_comments" rows="4"></textarea></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-danger btn-lg text-white">Generate Invoice Preview</button>
+        </div>
+    </form>
+    
+    <!-- Hidden template for new item forms -->
+    <div id="empty-form" style="display: none;">
+        <div class="row item-form mb-3 gx-2 align-items-end" id="item-__prefix__">
+            <div class="col-md-5">{{ formset.empty_form.description }}</div>
+            <div class="col-md-2">{{ formset.empty_form.quantity }}</div>
+            <div class="col-md-2">{{ formset.empty_form.unit_price }}</div>
+            <div class="col-md-2"><input type="text" class="form-control form-control-sm item-total" readonly></div>
+            <div class="col-md-1 text-center"><label class="form-label small delete-checkbox-label">Delete?</label>{{ formset.empty_form.DELETE }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formContainer = document.getElementById('item-form-container');
+        const addBtn = document.getElementById('add-item-btn');
+        const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
+        const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+        
+        // Safety check to ensure we are on the invoice creation page
+        if (formContainer && addBtn && emptyFormTemplate && totalFormsInput) {
+            let formCount = parseInt(totalFormsInput.value);
+    
+            // Function to apply Bootstrap classes to Django form fields
+            function styleForm(formElement) {
+                formElement.querySelectorAll('input, textarea, select').forEach(input => {
+                    if (input.type !== 'checkbox') {
+                        input.classList.add('form-control', 'form-control-sm');
+                    } else {
+                        input.classList.add('form-check-input');
+                    }
+                });
+            }
+    
+            // Apply styles to the initial form(s) loaded by Django
+            formContainer.querySelectorAll('.item-form').forEach(form => styleForm(form));
+            
+            // Event listener for the "Add Item" button
+            addBtn.addEventListener('click', function() {
+                // Create a new form from the template
+                const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = newFormHtml;
+                const newForm = newDiv.firstElementChild;
+                
+                // Style the new form and add it to the container
+                styleForm(newForm);
+                formContainer.appendChild(newForm);
+                
+                // Increment the total number of forms for the Django formset
+                totalFormsInput.value = ++formCount;
+            });
+    
+            // Event listener for auto-calculating line totals (using event delegation for performance)
+            formContainer.addEventListener('input', function(e) {
+                if (e.target.matches('input[name$="-quantity"]') || e.target.matches('input[name$="-unit_price"]')) {
+                    const formRow = e.target.closest('.item-form');
+                    const qtyInput = formRow.querySelector('input[name$="-quantity"]');
+                    const priceInput = formRow.querySelector('input[name$="-unit_price"]');
+                    const totalInput = formRow.querySelector('.item-total');
+                    
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    
+                    totalInput.value = (qty * price).toFixed(2);
+                }
+            });
+        }
+    
+        // Set today's date automatically on the date input field
+        const dateInput = document.getElementById('issue_date');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+    });
+    </script>
+    
+{% endblock %}

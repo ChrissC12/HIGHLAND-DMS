@@ -1,0 +1,28 @@
+# render.yaml
+
+services:
+  # 1. The Web Service (your Django app)
+  - type: web
+    name: highland-dms
+    runtime: python
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --no-input
+      python manage.py migrate
+    startCommand: "gunicorn dms_project.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: highland-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.8.10
+
+  # 2. The PostgreSQL Database
+  - type: psql
+    name: highland-db
+    plan: free # The free tier is great for starting out

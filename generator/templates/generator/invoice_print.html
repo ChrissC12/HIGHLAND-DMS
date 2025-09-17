@@ -1,0 +1,185 @@
+{% load static %}
+{% load humanize %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <!-- We use a CDN for Bootstrap for self-contained printing -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /*
+        ===================================================================
+        STYLES FOR THE FINAL, BRANDED, PRINT-READY INVOICE
+        This CSS is a direct copy of the preview page's styles to ensure a perfect match.
+        ===================================================================
+        */
+        :root {
+            --hc-white: #FFFFFF;
+            --hc-gold: #D4AF37;
+            --hc-red: #C0392B;
+            --hc-dark: #2C3E50;
+        }
+
+        body {
+            background-color: #FFFFFF !important; /* Force a white background for printing */
+            -webkit-print-color-adjust: exact !important; /* Force colors to print in Chrome/Safari */
+            color-adjust: exact !important; /* Force colors to print in Firefox */
+        }
+        
+        .invoice-container {
+            /* --- Mixed Background Color --- */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(253, 247, 237, 0.5) 100%), #FFFFFF;
+            padding: 2.5rem;
+            margin: 0 auto;
+            width: 8.5in; /* A4 Width */
+            min-height: 11in; /* A4 Height */
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+
+        /* --- Subtle Gold Corner Accents --- */
+        .invoice-container::before, .invoice-container::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--hc-gold) 0%, rgba(212,175,55,0) 60%);
+            opacity: 0.1;
+            z-index: 0;
+        }
+        .invoice-container::before { top: -50px; left: -50px; }
+        .invoice-container::after { bottom: -50px; right: -50px; }
+
+        .invoice-header, .info-grid, .invoice-table, .total-section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .invoice-header {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+            padding-bottom: 1rem; border-bottom: 2px solid var(--hc-gold); margin-bottom: 1rem;
+        }
+        .invoice-title { font-size: 2.5rem; font-weight: 700; color: var(--hc-red); text-align: right; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+        .bill-to {
+            background-color: var(--hc-dark); color: var(--hc-gold); padding: 0.25rem 0.5rem;
+            font-weight: bold; display: inline-block; margin-bottom: 0.5rem;
+        }
+        .info-box table { border-collapse: collapse; width: 100%; }
+        .info-box td { border: 1px solid #000; padding: 6px 8px; font-size: 9pt; }
+        .info-box td:first-child { font-weight: bold; background-color: #f2f2f2; }
+        .invoice-table { font-size: 9pt; margin-bottom: 0; }
+        .invoice-table thead th {
+            background-color: var(--hc-red); color: var(--hc-white);
+            font-weight: bold; text-align: center; border: 1px solid #000;
+        }
+        .invoice-table td, .invoice-table th { border: 1px solid #000; vertical-align: middle; }
+        .total-section { display: flex; justify-content: flex-end; margin-top: 1rem; }
+        .total-label { font-size: 12pt; font-weight: bold; margin-right: 2rem; }
+        .total-amount { font-size: 12pt; font-weight: bold; border-bottom: 3px double #000; padding-bottom: 2px; }
+    </style>
+</head>
+<body onload="window.print(); window.onafterprint = window.close;">
+
+    <!-- The invoice content is the only thing on this page -->
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-details">
+                {% if company_info.logo %}
+                <img src="{{ company_info.logo.url }}" alt="Logo" style="max-height: 80px;" class="mb-3">
+                {% endif %}
+                <h5 class="fw-bold">{{ company_info.name|default:"HIGHLAND COMPANY LTD"|upper }}</h5>
+                <p class="mb-0">P.O.BOX {{ company_info.address|default:"N/A" }}</p>
+                <p class="mb-0">{{ company_info.phone }}</p>
+                <p class="mb-0" style="color: #0000FF;">{{ company_info.email }}</p>
+            </div>
+            <div class="bank-details text-end">
+                <p class="invoice-title">INVOICE</p>
+                <p class="mb-0"><strong>Please Remitt to:</strong> {{ company_info.bank_name|default:"None" }}</p>
+                <p class="mb-0"><strong>A/C NO:</strong> {{ company_info.account_number|default:"None" }}</p>
+                <p class="mb-0"><strong>A/C NAME:</strong> {{ company_info.account_name|default:"None" }}</p>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="bill-to-section">
+                <p class="bill-to">BILL TO</p>
+                <div class="mt-2">
+                    <p class="fw-bold mb-0">{{ invoice.client_name|upper }}</p>
+                    <p class="mb-0">{{ invoice.client_address|linebreaksbr }}</p>
+                </div>
+            </div>
+            <div class="info-box">
+                <table>
+                    <tr><td>DATE</td><td>{{ invoice.issue_date|date:"m/d/Y H:i" }}</td></tr>
+                    <tr><td>DUE DATE</td><td>{{ invoice.due_date|date:"m/d/Y H:i"|default:"N/A" }}</td></tr>
+                    <tr><td>TIN NO.</td><td>{{ company_info.tin_number|default:"None" }}</td></tr>
+                    <tr><td>INVOICE NO.</td><td>{{ invoice.invoice_number }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="table table-bordered invoice-table">
+            <thead>
+                <tr class="text-center"><th colspan="4">PAYMENT TO BE DONE</th></tr>
+                <tr>
+                    <th style="width: 50%;">DESCRIPTION</th>
+                    <th class="text-center">QUANTITY(SQM)</th>
+                    <th class="text-end">PRICE/UNIT</th>
+                    <th class="text-end">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description|linebreaksbr }}</td>
+                    <td class="text-center">{{ item.quantity|floatformat:"-2g"|intcomma }}</td>
+                    <td class="text-end">TZS {{ item.unit_price|floatformat:"-2g"|intcomma }}</td>
+                    <td class="text-end">TZS {{ item.get_total|floatformat:"-2g"|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-borderless fw-bold">
+                    <td class="text-center" style="border: 1px solid #000 !important;">TOTAL</td>
+                    <td class="text-center" style="border: 1px solid #000 !important;">{{ invoice.get_total_quantity|floatformat:"-2g"|intcomma }}</td>
+                    <td class="text-end" style="border: 1px solid #000 !important;"></td>
+                    <td class="text-end" style="border: 1px solid #000 !important;">TZS {{ invoice.get_total|floatformat:"-2g"|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Other Comments Table -->
+        <table class="table table-bordered invoice-table mt-3">
+             <thead class="sub-header">
+                <tr class="text-center"><th colspan="2">OTHER COMMENTS</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="width: 70%;">{{ invoice.other_comments|linebreaksbr }}</td>
+                    <td class="text-end align-middle">TZS {{ invoice.get_total|floatformat:"-2g"|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Terms of payment:</strong> {{ invoice.terms_of_payment }}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- Final Total -->
+        <div class="total-section">
+            <span class="total-label">TOTAL AMOUNT</span>
+            <span class="total-amount">TZS {{ invoice.get_total|floatformat:"-2g"|intcomma }}</span>
+        </div>
+    </div>
+
+</body>
+</html>

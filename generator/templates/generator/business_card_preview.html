@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Business Card Preview for {{ employee.full_name }}{% endblock %}
+
+{% block extra_css %}
+<!-- =================================================================== -->
+<!-- STYLES FOR THE FINAL, ELEGANT 2-SIDED BUSINESS CARD -->
+<!-- =================================================================== -->
+<style>
+    :root {
+        --hc-white: #FFFFFF;
+        --hc-gold: #D4AF37;
+        --hc-red: #C0392B;
+        --hc-dark: #2C3E50;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .preview-page-container { background-color: #f8f9fa; padding: 2rem; border-radius: 10px; }
+    .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 30px;
+        padding: 40px 0;
+    }
+    
+    .business-card {
+        width: 3.5in;
+        height: 2in;
+        box-shadow: var(--card-shadow);
+        border-radius: 8px;
+        overflow: hidden;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        transition: transform 0.3s ease-in-out;
+        position: relative;
+    }
+    .business-card:hover { transform: translateY(-5px); }
+
+    /* --- RESTRUCTURED FRONT SIDE STYLING --- */
+    .business-card--front {
+        background: var(--hc-white);
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    /* The red diagonal accent */
+    .business-card--front::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -10%;
+        width: 80%; height: 120%;
+        background-color: var(--hc-red);
+        transform: rotate(15deg);
+        z-index: 0;
+    }
+    /* The watermark pattern */
+    .business-card--front::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        z-index: 2;
+        pointer-events: none;
+    }
+    .front__header, .front__employee-details {
+        position: relative;
+        z-index: 3; /* Ensure content is above the accent and watermark */
+    }
+    .front__header { display: flex; align-items: center; gap: 12px; }
+    .front__logo { height: 45px; width: 45px; object-fit: contain; }
+    .front__company-name { font-size: 16px; font-weight: 700; color: var(--hc-white); text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    .front__employee-details { text-align: right; }
+    .front__employee-name { font-size: 22px; font-weight: 600; color: var(--hc-dark); margin: 0; }
+    .front__employee-title { font-size: 14px; color: var(--hc-red); margin: 0 0 10px 0; }
+    .front__contact-info { font-size: 10px; line-height: 1.6; color: #555; }
+    .front__contact-info strong { color: var(--hc-dark); font-weight: 600; }
+    
+    /* --- COMPREHENSIVE BACK SIDE STYLING --- */
+    .business-card--back {
+        background: var(--hc-dark);
+        color: var(--hc-white);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        padding: 15px;
+    }
+    .back__logo--large { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
+    .back__tagline { font-size: 12px; font-style: italic; color: var(--hc-gold); margin-bottom: 12px; }
+    .back__info-grid {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+    }
+    .back__qr-code { width: 70px; height: 70px; background: white; padding: 4px; border-radius: 4px; }
+    .back__contact-details { font-size: 9px; line-height: 1.5; text-align: left; opacity: 0.9; }
+    .back__social-icons { margin-top: 10px; }
+    .back__social-link { color: var(--hc-white); text-decoration: none; font-size: 18px; margin: 0 8px; opacity: 0.8; transition: opacity 0.3s; }
+    .back__social-link:hover { opacity: 1; }
+    
+    .action-panel { position: sticky; top: 100px; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="preview-page-container">
+    <div class="row">
+        <!-- Preview Section -->
+        <div class="col-lg-8">
+            <header class="preview-header text-center mb-4">
+                <h4 class="fw-bold">Business Card Preview</h4>
+                <p class="text-muted">This is a live preview of the business card, front and back.</p>
+            </header>
+            
+            <div class="preview-container">
+                <!-- ============================================= -->
+                <!-- RESTRUCTURED FRONT CARD -->
+                <!-- ============================================= -->
+                <article class="business-card" id="business-card-front">
+                    <div class="business-card--front">
+                        <div class="front__header">
+                            {% if company_info.logo_thumbnail %}
+                            <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" class="front__logo">
+                            {% endif %}
+                            <p class="front__company-name">{{ company_info.name|default:"HIGHLAND COMPANY LTD" }}</p>
+                        </div>
+                        
+                        <div class="front__employee-details">
+                            <h1 class="front__employee-name">{{ employee.full_name }}</h1>
+                            <p class="front__employee-title">{{ employee.job_title }}</p>
+                            
+                            <address class="front__contact-info" style="font-style: normal;">
+                                <strong>Phone:</strong> {{ card.personal_phone|default:company_info.phone|default:"N/A" }}<br>
+                                <strong>Email:</strong> {{ card.personal_email|default:company_info.email|default:"N/A" }}<br>
+                                <strong>Website:</strong> {{ card.website_url|default:company_info.website|default:"N/A" }}
+                            </address>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ============================================= -->
+                <!-- COMPREHENSIVE BACK CARD -->
+                <!-- ============================================= -->
+                <article class="business-card" id="business-card-back">
+                    <div class="business-card--back">
+                        {% if company_info.logo_thumbnail %}
+                        <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" class="back__logo--large">
+                        {% endif %}
+                        
+                        {% if company_info.tagline %}
+                        <p class="back__tagline">"{{ company_info.tagline }}"</p>
+                        {% endif %}
+                        
+                        <div class="back__info-grid">
+                            {% if company_info.qr_code %}
+                            <img src="{{ company_info.qr_code.url }}" alt="QR Code" class="back__qr-code">
+                            {% endif %}
+                            <address class="back__contact-details" style="font-style: normal;">
+                                {{ company_info.address|default:"P.O. Box 12345, Dar es Salaam"|linebreaksbr }}<br>
+                                <strong>P:</strong> {{ company_info.phone|default:"N/A" }}<br>
+                                <strong>E:</strong> {{ company_info.email|default:"N/A" }}<br>
+                                <strong>W:</strong> {{ company_info.website|default:"N/A" }}
+                            </address>
+                        </div>
+
+                        <div class="back__social-icons">
+                            {% if company_info.linkedin_url %}<a href="{{ company_info.linkedin_url }}" target="_blank" class="back__social-link"><i class="fab fa-linkedin"></i></a>{% endif %}
+                            {% if company_info.instagram_url %}<a href="{{ company_info.instagram_url }}" target="_blank" class="back__social-link"><i class="fab fa-instagram"></i></a>{% endif %}
+                            {% if company_info.facebook_url %}<a href="{{ company_info.facebook_url }}" target="_blank" class="back__social-link"><i class="fab fa-facebook"></i></a>{% endif %}
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+        
+        <!-- Actions Panel (Unchanged) -->
+        <div class="col-lg-4">
+            <aside class="card border-0 shadow-sm action-panel">
+                <div class="card-body">
+                    <h5 class="card-title action-panel__title">Actions</h5>
+                    <p class="card-text action-panel__description">
+                        Download high-resolution images of the business card, suitable for printing.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-danger text-white" id="download-front-btn">Download Front (PNG)</button>
+                        <button class="btn btn-warning text-dark" id="download-back-btn">Download Back (PNG)</button>
+                    </div>
+                    <a href="{% url 'generator:id_card_dashboard' %}" class="btn btn-link mt-2 d-block text-center">Back to Employee List</a>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Download function for business cards
+    function downloadCard(elementId, filename) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            html2canvas(element, { 
+                scale: 4,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(error => {
+                console.error('Error generating card image:', error);
+                alert('Failed to generate download. Please try again.');
+            });
+        }
+    }
+
+    // Event listeners for download buttons
+    document.getElementById('download-front-btn').addEventListener('click', function() {
+        downloadCard('business-card-front', 'Highland_BizCard_{{ employee.employee_id }}_Front.png');
+    });
+    
+    document.getElementById('download-back-btn').addEventListener('click', function() {
+        downloadCard('business-card-back', 'Highland_BizCard_{{ employee.employee_id }}_Back.png');
+    });
+});
+</script>
+{% endblock %}
