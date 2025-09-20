@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <!-- =================================================================== -->
-<!-- STYLES FOR THE FINAL, ELEGANT 2-SIDED BUSINESS CARD -->
+<!-- STYLES FOR THE FINAL, RESTRUCTURED 2-SIDED BUSINESS CARD -->
 <!-- =================================================================== -->
 <style>
     :root {
@@ -14,9 +14,15 @@
         --hc-red: #C0392B;
         --hc-dark: #2C3E50;
         --card-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        --hover-effect: translateY(-5px);
     }
     
-    .preview-page-container { background-color: #f8f9fa; padding: 2rem; border-radius: 10px; }
+    .preview-page-container { 
+        background-color: #f8f9fa; 
+        padding: 2rem; 
+        border-radius: 10px; 
+    }
+    
     .preview-container {
         display: flex;
         flex-wrap: wrap;
@@ -36,83 +42,192 @@
         transition: transform 0.3s ease-in-out;
         position: relative;
     }
-    .business-card:hover { transform: translateY(-5px); }
+    
+    .business-card:hover {
+        transform: var(--hover-effect);
+    }
+
+    .business-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        z-index: 0;
+        pointer-events: none;
+    }
 
     /* --- RESTRUCTURED FRONT SIDE STYLING --- */
     .business-card--front {
         background: var(--hc-white);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
         position: relative;
         z-index: 1;
         width: 100%;
         height: 100%;
-        padding: 20px;
+    }
+    .front__logo-area {
+        flex-shrink: 0;
+        text-align: center;
+    }
+    .front__logo {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+    }
+    .front__separator {
+        width: 2px;
+        height: 60%;
+        background-color: var(--hc-gold);
+    }
+    .front__main-info {
+        flex-grow: 1;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: center;
     }
-    /* The red diagonal accent */
-    .business-card--front::before {
-        content: '';
-        position: absolute;
-        top: -50%; left: -10%;
-        width: 80%; height: 120%;
-        background-color: var(--hc-red);
-        transform: rotate(15deg);
-        z-index: 0;
+    .front__employee-name {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--hc-dark);
+        margin: 0;
     }
-    /* The watermark pattern */
-    .business-card--front::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        z-index: 2;
-        pointer-events: none;
+    .front__employee-title {
+        font-size: 16px;
+        color: var(--hc-red);
+        margin: 2px 0 15px 0;
     }
-    .front__header, .front__employee-details {
-        position: relative;
-        z-index: 3; /* Ensure content is above the accent and watermark */
+    .front__contact-info {
+        font-size: 11px;
+        line-height: 1.8;
+        color: #555;
     }
-    .front__header { display: flex; align-items: center; gap: 12px; }
-    .front__logo { height: 45px; width: 45px; object-fit: contain; }
-    .front__company-name { font-size: 16px; font-weight: 700; color: var(--hc-white); text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-    .front__employee-details { text-align: right; }
-    .front__employee-name { font-size: 22px; font-weight: 600; color: var(--hc-dark); margin: 0; }
-    .front__employee-title { font-size: 14px; color: var(--hc-red); margin: 0 0 10px 0; }
-    .front__contact-info { font-size: 10px; line-height: 1.6; color: #555; }
-    .front__contact-info strong { color: var(--hc-dark); font-weight: 600; }
+    .front__contact-info strong {
+        color: var(--hc-dark);
+    }
     
-    /* --- COMPREHENSIVE BACK SIDE STYLING --- */
+    /* ============================================= */
+    /* --- RESTRUCTURED BACK SIDE STYLING --- */
+    /* ============================================= */
     .business-card--back {
         background: var(--hc-dark);
         color: var(--hc-white);
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
+        padding: 20px;
         position: relative;
         z-index: 1;
         width: 100%;
         height: 100%;
-        padding: 15px;
     }
-    .back__logo--large { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
-    .back__tagline { font-size: 12px; font-style: italic; color: var(--hc-gold); margin-bottom: 12px; }
-    .back__info-grid {
+    
+    .back__left-col {
+        flex: 0 0 60%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .back__right-col {
+        flex: 0 0 40%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-left: 1px solid var(--hc-gold);
+        padding-left: 15px;
+    }
+    
+    .back__logo-area {
         display: flex;
         align-items: center;
-        gap: 15px;
-        width: 100%;
+        gap: 10px;
+        margin-bottom: 10px;
     }
-    .back__qr-code { width: 70px; height: 70px; background: white; padding: 4px; border-radius: 4px; }
-    .back__contact-details { font-size: 9px; line-height: 1.5; text-align: left; opacity: 0.9; }
-    .back__social-icons { margin-top: 10px; }
-    .back__social-link { color: var(--hc-white); text-decoration: none; font-size: 18px; margin: 0 8px; opacity: 0.8; transition: opacity 0.3s; }
-    .back__social-link:hover { opacity: 1; }
     
+    .back__logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+    
+    .back__company-name {
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--hc-white);
+        margin: 0;
+    }
+    
+    .back__tagline {
+        font-size: 10px;
+        font-style: italic;
+        color: var(--hc-gold);
+        margin-bottom: 15px;
+    }
+    
+    .back__contact-details {
+        font-size: 9px;
+        line-height: 1.6;
+    }
+    
+    .back__contact-details p {
+        margin: 4px 0;
+    }
+    
+    .back__contact-details strong {
+        color: var(--hc-gold);
+        margin-right: 5px;
+    }
+    
+    .back__qr-code {
+        width: 80px;
+        height: 80px;
+        background: white;
+        padding: 5px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+    
+    .back__website {
+        font-size: 9px;
+        color: var(--hc-white);
+        text-align: center;
+        margin: 5px 0;
+    }
+    
+    .back__social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 5px;
+    }
+    
+    .back__social-link {
+        color: var(--hc-white);
+        text-decoration: none;
+        font-size: 12px;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+    
+    .back__social-link:hover {
+        opacity: 1;
+        color: var(--hc-gold);
+    }
+    
+    /* Action panel styling */
     .action-panel { position: sticky; top: 100px; }
+    .action-panel__title { font-weight: bold; }
+    .action-panel__description { font-size: 0.9rem; color: #6c757d; }
+    
+    @media (max-width: 992px) {
+        .preview-container { flex-direction: column; align-items: center; }
+        .action-panel { position: static; margin-top: 2rem; }
+    }
 </style>
 {% endblock %}
 
@@ -133,16 +248,19 @@
                 <!-- ============================================= -->
                 <article class="business-card" id="business-card-front">
                     <div class="business-card--front">
-                        <div class="front__header">
+                        <div class="front__logo-area">
                             {% if company_info.logo_thumbnail %}
                             <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" class="front__logo">
+                            {% else %}
+                            <div class="front__logo" style="background:#eee; border:1px solid #ccc;"></div>
                             {% endif %}
-                            <p class="front__company-name">{{ company_info.name|default:"HIGHLAND COMPANY LTD" }}</p>
                         </div>
                         
-                        <div class="front__employee-details">
+                        <div class="front__separator"></div>
+                        
+                        <div class="front__main-info">
                             <h1 class="front__employee-name">{{ employee.full_name }}</h1>
-                            <p class="front__employee-title">{{ employee.job_title }}</p>
+                            <p class="front__employee-title">Position: {{ employee.job_title }}</p>
                             
                             <address class="front__contact-info" style="font-style: normal;">
                                 <strong>Phone:</strong> {{ card.personal_phone|default:company_info.phone|default:"N/A" }}<br>
@@ -154,41 +272,78 @@
                 </article>
 
                 <!-- ============================================= -->
-                <!-- COMPREHENSIVE BACK CARD -->
+                <!-- RESTRUCTURED BACK CARD -->
                 <!-- ============================================= -->
                 <article class="business-card" id="business-card-back">
                     <div class="business-card--back">
-                        {% if company_info.logo_thumbnail %}
-                        <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" class="back__logo--large">
-                        {% endif %}
-                        
-                        {% if company_info.tagline %}
-                        <p class="back__tagline">"{{ company_info.tagline }}"</p>
-                        {% endif %}
-                        
-                        <div class="back__info-grid">
-                            {% if company_info.qr_code %}
-                            <img src="{{ company_info.qr_code.url }}" alt="QR Code" class="back__qr-code">
-                            {% endif %}
-                            <address class="back__contact-details" style="font-style: normal;">
-                                {{ company_info.address|default:"P.O. Box 12345, Dar es Salaam"|linebreaksbr }}<br>
-                                <strong>P:</strong> {{ company_info.phone|default:"N/A" }}<br>
-                                <strong>E:</strong> {{ company_info.email|default:"N/A" }}<br>
-                                <strong>W:</strong> {{ company_info.website|default:"N/A" }}
-                            </address>
+                        <div class="back__left-col">
+                            <div>
+                                <div class="back__logo-area">
+                                    {% if company_info.logo_thumbnail %}
+                                    <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" class="back__logo">
+                                    {% endif %}
+                                    <h3 class="back__company-name">{{ company_info.name }}</h3>
+                                </div>
+                                
+                                {% if company_info.tagline %}
+                                <p class="back__tagline">"{{ company_info.tagline }}"</p>
+                                {% endif %}
+                                
+                                <div class="back__contact-details">
+                                    <p><strong>Address:</strong> {{ company_info.address|default:"N/A" }}</p>
+                                    <p><strong>Phone:</strong> {{ company_info.phone|default:"N/A" }}</p>
+                                    <p><strong>Email:</strong> {{ company_info.email|default:"N/A" }}</p>
+                                    <p><strong>Website:</strong> {{ company_info.website|default:"N/A" }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="back__social-icons">
+                                {% if company_info.linkedin_url %}
+                                <a href="{{ company_info.linkedin_url }}" target="_blank" class="back__social-link">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                                {% endif %}
+                                {% if company_info.instagram_url %}
+                                <a href="{{ company_info.instagram_url }}" target="_blank" class="back__social-link">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                {% endif %}
+                                {% if company_info.facebook_url %}
+                                <a href="{{ company_info.facebook_url }}" target="_blank" class="back__social-link">
+                                    <i class="fab fa-facebook"></i>
+                                </a>
+                                {% endif %}
+                                {% if company_info.twitter_url %}
+                                <a href="{{ company_info.twitter_url }}" target="_blank" class="back__social-link">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
-
-                        <div class="back__social-icons">
-                            {% if company_info.linkedin_url %}<a href="{{ company_info.linkedin_url }}" target="_blank" class="back__social-link"><i class="fab fa-linkedin"></i></a>{% endif %}
-                            {% if company_info.instagram_url %}<a href="{{ company_info.instagram_url }}" target="_blank" class="back__social-link"><i class="fab fa-instagram"></i></a>{% endif %}
-                            {% if company_info.facebook_url %}<a href="{{ company_info.facebook_url }}" target="_blank" class="back__social-link"><i class="fab fa-facebook"></i></a>{% endif %}
+                        
+                        <div class="back__right-col">
+                            {% if employee.qr_code %}
+                            <img src="{{ employee.qr_code.url }}" alt="QR Code" class="back__qr-code">
+                            {% else %}
+                            <div class="back__qr-code" style="background:#eee; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #666; font-size: 8px;">QR Code</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if company_info.website %}
+                            <p class="back__website">{{ company_info.website }}</p>
+                            {% endif %}
+                            
+                            <p style="font-size: 9px; color: var(--hc-gold); text-align: center; margin: 0;">
+                                Scan to save contact
+                            </p>
                         </div>
                     </div>
                 </article>
             </div>
         </div>
         
-        <!-- Actions Panel (Unchanged) -->
+        <!-- Actions Panel -->
         <div class="col-lg-4">
             <aside class="card border-0 shadow-sm action-panel">
                 <div class="card-body">
@@ -197,11 +352,17 @@
                         Download high-resolution images of the business card, suitable for printing.
                     </p>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-danger text-white" id="download-front-btn">Download Front (PNG)</button>
-                        <button class="btn btn-warning text-dark" id="download-back-btn">Download Back (PNG)</button>
+                        <!-- ============================================= -->
+                        <!-- NEW PRINT BUTTON -->
+                        <!-- ============================================= -->
+                        <a href="{% url 'generator:business_card_print' employee.id %}" target="_blank" class="btn btn-danger text-white">
+                            <i class="fas fa-print me-2"></i>Print Business Card
+                        </a>
+                        <!-- Keep download buttons as a secondary option 
+                        <button class="btn btn-outline-secondary" id="download-front-btn">Download Front (PNG)</button>
+                        <button class="btn btn-outline-secondary" id="download-back-btn">Download Back (PNG)</button>
+                        -->
                     </div>
-                    <a href="{% url 'generator:id_card_dashboard' %}" class="btn btn-link mt-2 d-block text-center">Back to Employee List</a>
-                </div>
             </aside>
         </div>
     </div>
@@ -209,6 +370,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Download function for business cards
@@ -217,7 +379,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (element) {
             html2canvas(element, { 
                 scale: 4,
-                useCORS: true
+                useCORS: true,
+                backgroundColor: null
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = filename;

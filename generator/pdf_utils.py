@@ -90,13 +90,15 @@ def draw_card_back(p, employee, company_info, y_offset):
 # ==============================================================================
 def generate_invoice_pdf(invoice, company_info):
     buffer = io.BytesIO()
+    # Use A4 paper size, which is standard for invoices
     p = canvas.Canvas(buffer, pagesize='A4')
-    width, height = letter
+    width, height = letter # Use letter dimensions for inch calculations
     styles = getSampleStyleSheet()
     styles['Normal'].fontName = 'Helvetica'
     styles['Normal'].fontSize = 9
     styles['Normal'].leading = 12
 
+    # --- Define Brand Colors ---
     hc_red = HexColor('#C0392B')
     hc_gold = HexColor('#D4AF37')
     hc_dark = HexColor('#2C3E50')
@@ -126,6 +128,7 @@ def generate_invoice_pdf(invoice, company_info):
     p.drawRightString(width - 1*inch, height - 1.40*inch, f"A/C NO: {company_info.account_number or 'N/A'}")
     p.drawRightString(width - 1*inch, height - 1.55*inch, f"A/C NAME: {company_info.account_name or 'N/A'}")
     
+    # Gold Separator Line
     p.setStrokeColor(hc_gold)
     p.setLineWidth(2)
     p.line(1*inch, height - 2.2*inch, width - 1*inch, height - 2.2*inch)
@@ -133,7 +136,7 @@ def generate_invoice_pdf(invoice, company_info):
     # --- 2. Info Grid Section ---
     p.setFillColor(hc_dark)
     p.rect(1*inch, height - 2.8*inch, 1*inch, 0.2*inch, fill=1, stroke=0)
-    p.setFillColor(white)
+    p.setFillColorRGB(1,1,1) # White text
     p.setFont("Helvetica-Bold", 10)
     p.drawString(1.1*inch, height - 2.75*inch, "BILL TO")
     p.setFillColor(black)
@@ -141,8 +144,8 @@ def generate_invoice_pdf(invoice, company_info):
     p.drawString(1*inch, height - 3.1*inch, invoice.client_name.upper())
     p.setFont("Helvetica", 9)
     p.drawString(1*inch, height - 3.25*inch, invoice.client_address)
-    p.drawString(1*inch, height - 3.4*inch, invoice.client_phone or "")
 
+    # Info Box Table
     info_data = [
         ['DATE', invoice.issue_date.strftime('%m/%d/%Y %H:%M')],
         ['DUE DATE', invoice.due_date.strftime('%m/%d/%Y %H:%M') if invoice.due_date else 'N/A'],
@@ -162,33 +165,33 @@ def generate_invoice_pdf(invoice, company_info):
     table_y_start = height - 4.2*inch
     
     # Items Table
-    header = [Paragraph('<b>DESCRIPTION</b>', styles['Normal']), Paragraph('<b>QUANTITY(SQM)</b>', styles['Normal']), Paragraph('<b>PRICE/UNIT</b>', styles['Normal']), Paragraph('<b>AMOUNT</b>', styles['Normal'])]
-    data = [header]
+    items_header = [Paragraph('<b>DESCRIPTION</b>', styles['Normal']), Paragraph('<b>QUANTITY(SQM)</b>', styles['Normal']), Paragraph('<b>PRICE/UNIT</b>', styles['Normal']), Paragraph('<b>AMOUNT</b>', styles['Normal'])]
+    items_data = [items_header]
     total_quantity = sum(item.quantity for item in invoice.items.all())
     
     for item in invoice.items.all():
-        data.append([
+        items_data.append([
             Paragraph(item.description.replace('\n', '<br/>'), styles['Normal']),
-            intcomma(int(item.quantity)),
+            intcomma(item.quantity),
             f"TZS {intcomma(int(item.unit_price))}",
             f"TZS {intcomma(int(item.get_total()))}",
         ])
     
-    data.append(['<b>TOTAL</b>', f'<b>{intcomma(int(total_quantity))}</b>', '', f"<b>TZS {intcomma(int(invoice.get_total()))}</b>"])
+    items_data.append(['<b>TOTAL</b>', f'<b>{intcomma(total_quantity)}</b>', '', f"<b>TZS {intcomma(int(invoice.get_total()))}</b>"])
     
-    item_table = Table(data, colWidths=[3.5*inch, 1*inch, 1*inch, 1.5*inch])
+    item_table = Table(items_data, colWidths=[3.5*inch, 1*inch, 1*inch, 1.5*inch])
     item_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), hc_dark), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('BACKGROUND', (0,0), (-1,0), hc_dark), ('TEXTCOLOR', (0,0), (-1,0), (1,1,1)),
         ('ALIGN', (1,1), (-1,-1), 'CENTER'), ('ALIGN', (3,1), (3,-1), 'RIGHT'),
         ('GRID', (0,0), (-1,-1), 1, black), 
         ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
         ('BOTTOMPADDING', (0,0), (-1,0), 10), ('TOPPADDING', (0,0), (-1,0), 10),
     ]))
-    table_width, table_height = item_table.wrapOn(p, width - 2*inch, height)
-    item_table.drawOn(p, 1*inch, table_y_start - table_height)
+    items_width, items_height = items_table.wrapOn(p, width, height)
+    items_table.drawOn(p, 1*inch, table_y_start - items_height)
 
     # Comments Table
-    comments_y_start = table_y_start - table_height - 0.2*inch
+    comments_y_start = table_y_start - items_height - 0.2*inch
     comments_data = [
         [Paragraph('<b>OTHER COMMENTS</b>', styles['Normal'])],
         [Paragraph(invoice.other_comments or '', styles['Normal']), f"TZS {intcomma(int(invoice.get_total()))}"],
@@ -196,7 +199,7 @@ def generate_invoice_pdf(invoice, company_info):
     ]
     comments_table = Table(comments_data, colWidths=[5*inch, 2.5*inch])
     comments_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (0,0), hc_dark), ('TEXTCOLOR', (0,0), (0,0), white),
+        ('BACKGROUND', (0,0), (0,0), hc_dark), ('TEXTCOLOR', (0,0), (0,0), (1,1,1)),
         ('GRID', (0,0), (-1,-1), 1, black), ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('ALIGN', (1,1), (1,1), 'RIGHT'), ('SPAN', (0,1), (0,2)),
     ]))

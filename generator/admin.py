@@ -19,8 +19,11 @@ class CompanyInfoAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'phone', 'website')
     fieldsets = (
         (None, {'fields': ('name', 'logo', 'tagline')}),
-        ('Contact Information', {'fields': ('address', 'phone', 'email', 'website')}),
+        ('Contact Information', {'fields': ('address', 'phone', 'email', 'website','tin_number')}),
         ('Social Media', {'fields': ('linkedin_url', 'instagram_url', 'facebook_url')}),
+        ('Bank Remittance Details', {
+            'fields': ('bank_name', 'account_number', 'account_name')
+        }),
     )
 
 @admin.register(Employee)

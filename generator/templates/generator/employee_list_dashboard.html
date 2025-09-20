@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employee List - Highland DMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ============================================= -->
+    <!-- EMPLOYEE LIST TABLE -->
+    <!-- ============================================= -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center p-3">
+            <h4 class="mb-0 fw-bold">Employee List</h4>
+            <a href="/admin/generator/employee/add/" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Employee
+            </a>
+        </div>
+        <div class="card-body p-3">
+            <p class="text-muted small mb-0">Select an employee from this list to generate their ID or Business Card.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" class="ps-3">Employee Name</th>
+                        <th scope="col">Job Title</th>
+                        <th scope="col">Department</th>
+                        <th scope="col" class="text-end pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td class="ps-3">
+                            <div class="d-flex align-items-center">
+                                {% if employee.photo_thumbnail %}
+                                <img src="{{ employee.photo_thumbnail.url }}" alt="{{ employee.full_name }}" style="width: 45px; height: 45px" class="rounded-circle me-3"/>
+                                {% else %}
+                                <img src="{% static 'images/default_photo.png' %}" alt="Default Photo" style="width: 45px; height: 45px" class="rounded-circle me-3"/>
+                                {% endif %}
+                                <div>
+                                    <p class="fw-bold mb-1">{{ employee.full_name }}</p>
+                                    <p class="text-muted mb-0 small">{{ employee.employee_id }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ employee.job_title }}</td>
+                        <td>{{ employee.department }}</td>
+                        <td class="text-end pe-3">
+                            <!-- Dropdown for ID Card Actions -->
+                            <div class="btn-group">
+                                <a href="{% url 'generator:id_card_tangible_preview' employee.id %}" class="btn btn-sm btn-danger text-white">View ID Card</a>
+                                <button type="button" class="btn btn-sm btn-danger text-white dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'generator:id_card_tangible_preview' employee.id %}">View 3D Preview</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'generator:id_card_preview' employee.id %}">View Printable Sheet</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'generator:download_id_card_pdf' employee.id %}">Download PDF for Printing</a></li>
+                                </ul>
+                            </div>
+                            <!-- Standard button for Business Card -->
+                            <a href="{% url 'generator:business_card_preview' employee.id %}" class="btn btn-sm btn-outline-secondary ms-2">Business Card</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-5">
+                            <h5 class="text-muted">No employees found.</h5>
+                            <p>Please add an employee in the admin panel to get started.</p>
+                            <a href="/admin/generator/employee/add/" class="btn btn-primary mt-2">Add First Employee</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -28,6 +28,7 @@ class CompanyInfo(models.Model):
     bank_name = models.CharField(max_length=255, blank=True, null=True, help_text="e.g., CRDB Bank")
     account_number = models.CharField("Bank A/C Number", max_length=100, blank=True, null=True)
     account_name = models.CharField("Bank A/C Name", max_length=255, blank=True, null=True)
+    TIN = models.CharField("TIN", max_length=255, blank=True, null=True)
     
     # --- Fields for Business Card ---
     tagline = models.CharField(max_length=255, blank=True, null=True, help_text="e.g., Quality Solutions, Delivered.")
@@ -113,28 +114,46 @@ class BusinessCard(models.Model):
 # ==============================================================================
 
 class Invoice(models.Model):
-    """
-    Represents a single invoice document.
-    """
-    invoice_number = models.CharField(max_length=100, unique=True)
-    issue_date = models.DateTimeField() # Changed to DateTimeField for time
-    due_date = models.DateTimeField(blank=True, null=True) # Changed to DateTimeField for time
+    # The invoice_number field can now be non-editable as it's auto-generated
+    invoice_number = models.CharField(max_length=100, unique=True, blank=True, editable=False)
+    issue_date = models.DateTimeField()
+    due_date = models.DateTimeField(blank=True, null=True)
     client_name = models.CharField(max_length=255)
     client_address = models.TextField()
     client_phone = models.CharField(max_length=100, blank=True, null=True)
-    
-    # Fields from the "OTHER COMMENTS" box
     other_comments = models.TextField(blank=True, null=True)
     terms_of_payment = models.CharField(max_length=255, blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Invoice {self.invoice_number} for {self.client_name}"
 
     def get_total(self):
-        # The total is the sum of all its items. No tax in this design.
         return sum(item.get_total() for item in self.items.all())
+        
+    def get_total_quantity(self):
+        return sum(item.quantity for item in self.items.all())
+
+    # =======================================================
+    # THIS IS THE FIX: The new, automated save method
+    # =======================================================
+    def save(self, *args, **kwargs):
+        # This logic runs only when a new invoice is being created
+        if not self.invoice_number:
+            # Find the highest existing invoice number
+            last_invoice = Invoice.objects.all().order_by('id').last()
+            if not last_invoice:
+                # This is the very first invoice
+                new_number = 1
+            else:
+                # Get the number from the last invoice's ID and add 1
+                new_number = last_invoice.id + 1
+            
+            # Format the number with the "INV" prefix and leading zeros
+            self.invoice_number = f'INV-{new_number:04d}'
+        
+        # Call the original save method to save the instance
+        super().save(*args, **kwargs)
 
 
 class InvoiceItem(models.Model):

@@ -9,11 +9,23 @@ from .models import Employee, CompanyInfo, BusinessCard, Invoice, InvoiceItem
 # Import our PDF generation utilities
 from .pdf_utils import generate_id_card_pdf, generate_invoice_pdf
 from .pdf_utils import generate_welcome_package_pdf
+from django.contrib.auth.decorators import login_required
 
+
+def splash_page(request):
+    """
+    Displays a public-facing splash page with a login form.
+    """
+    # If the user is already logged in, redirect them straight to the dashboard.
+    if request.user.is_authenticated:
+        return redirect('generator:id_card_dashboard')
+    return render(request, 'generator/splash_page.html')
 
 # ==============================================================================
 # DASHBOARD VIEWS
 # ==============================================================================
+
+@login_required
 def id_card_dashboard(request):
     """
     Displays the main dashboard with a list of all employees,
@@ -26,6 +38,7 @@ def id_card_dashboard(request):
     return render(request, 'generator/id_card_dashboard.html', context)
 
 
+@login_required
 def invoice_dashboard(request):
     """
     Displays a list of all created invoices.
@@ -40,6 +53,7 @@ def invoice_dashboard(request):
 # ==============================================================================
 # ID CARD VIEWS
 # ==============================================================================
+@login_required
 def id_card_preview(request, employee_id):
     """
     Renders the simple, clean "printable sheet" preview of the ID card.
@@ -52,7 +66,7 @@ def id_card_preview(request, employee_id):
     }
     return render(request, 'generator/id_card_preview.html', context)
 
-
+@login_required
 def id_card_tangible_preview(request, employee_id):
     """
     Renders the realistic, "tangible" 3D preview of the ID card.
@@ -65,7 +79,7 @@ def id_card_tangible_preview(request, employee_id):
     }
     return render(request, 'generator/id_card_tangible_preview.html', context)
 
-
+@login_required
 def download_id_card_pdf(request, employee_id):
     """
     Generates and serves a print-ready PDF of the employee's ID card.
@@ -80,6 +94,7 @@ def download_id_card_pdf(request, employee_id):
 # ==============================================================================
 # BUSINESS CARD VIEWS
 # ==============================================================================
+@login_required
 def business_card_preview(request, employee_id):
     """
     Renders a preview of the business card for a specific employee.
@@ -98,6 +113,7 @@ def business_card_preview(request, employee_id):
 # ==============================================================================
 # INVOICE VIEWS
 # ==============================================================================
+@login_required
 def create_invoice(request):
     """
     Handles the creation of a new invoice with its line items.
@@ -146,6 +162,7 @@ def create_invoice(request):
     }
     return render(request, 'generator/create_invoice.html', context)
     
+@login_required
 def invoice_preview(request, invoice_id):
     """
     Displays a preview of the generated invoice before downloading.
@@ -159,6 +176,7 @@ def invoice_preview(request, invoice_id):
     return render(request, 'generator/invoice_preview.html', context)
 
 
+@login_required
 def download_invoice_pdf(request, invoice_id):
     """
     Generates and serves a print-ready PDF of the final invoice.
@@ -175,6 +193,7 @@ def download_invoice_pdf(request, invoice_id):
     # Serve the generated PDF as a file download.
     return FileResponse(pdf_buffer, as_attachment=True, filename=filename)
 
+@login_required
 def invoice_print(request, invoice_id):
     """
     Renders a clean, print-only version of the invoice.
@@ -187,7 +206,7 @@ def invoice_print(request, invoice_id):
     }
     return render(request, 'generator/invoice_print.html', context)
 
-
+@login_required
 def download_welcome_package(request, employee_id, invoice_id):
     """
     Generates a single PDF containing the invoice and ID card for a new hire.
@@ -202,3 +221,47 @@ def download_welcome_package(request, employee_id, invoice_id):
     filename = f"Welcome_Package_{employee.full_name.replace(' ', '_')}.pdf"
     
     return FileResponse(pdf_buffer, as_attachment=True, filename=filename)
+
+@login_required
+def id_card_print(request, employee_id):
+    """
+    Renders a special, clean template formatted exactly for printing
+    on a CR80 PVC card.
+    """
+    employee = get_object_or_404(Employee, id=employee_id)
+    company_info = CompanyInfo.objects.first()
+    
+    context = {
+        'employee': employee,
+        'company_info': company_info
+    }
+    # Point to our new, print-specific template
+    return render(request, 'generator/id_card_print.html', context)
+
+@login_required
+def business_card_print(request, employee_id):
+    """
+    Renders a clean, print-only version of the business card.
+    """
+    employee = get_object_or_404(Employee, id=employee_id)
+    company_info = CompanyInfo.objects.first()
+    business_card, created = BusinessCard.objects.get_or_create(employee=employee)
+    
+    context = {
+        'employee': employee,
+        'company_info': company_info,
+        'card': business_card
+    }
+    return render(request, 'generator/business_card_print.html', context)
+
+@login_required
+def employee_list_dashboard(request):
+    """
+    Displays a dedicated page with a list of all employees for
+    generating their documents.
+    """
+    employees = Employee.objects.all().order_by('full_name')
+    context = {
+        'employees': employees
+    }
+    return render(request, 'generator/employee_list_dashboard.html', context)

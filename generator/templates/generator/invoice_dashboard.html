@@ -37,7 +37,7 @@
                         </td>
                         <td>{{ invoice.client_name }}</td>
                         <td>{{ invoice.issue_date|date:"F d, Y" }}</td>
-                        <td>${{ invoice.get_total|floatformat:2 }}</td>
+                        <td>TZS{{ invoice.get_total|floatformat:2 }}</td>
                         <td class="text-end pe-3">
                             <a href="{% url 'generator:invoice_preview' invoice.id %}" class="btn btn-sm btn-outline-secondary">View Details</a>
                         </td>

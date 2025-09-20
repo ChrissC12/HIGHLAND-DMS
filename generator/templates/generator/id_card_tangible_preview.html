@@ -87,18 +87,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 8px;
+        margin-bottom: 2px;
     }
     
     .id-card-front .company-logo {
-        height: 50px;
-        width: 50px;
-        border-radius: 60%;
-        margin: 0 auto;
-        object-fit: cover;
-        border: 2px solid var(--hc-gold);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
+            height: 40px;
+            width: 40px;
+            border-radius: 60%;
+            margin: 0 auto;
+            object-fit: cover;
+           
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
     
     .id-card-front .company-name {
         font-size: 12px;
@@ -117,12 +117,12 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 15px 10px;
+        padding: 12px 3px;
     }
     
     .id-card-front .photo-container {
         position: relative;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     
     .id-card-front .photo {
@@ -241,8 +241,8 @@
     }
     
     .id-card-back .qr-code {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         border: 1px solid var(--hc-border-color);
         padding: 5px;
         background: white;
@@ -341,6 +341,8 @@
                             <p class="company-name">{{ company_info.name|default:"HIGHLAND PROPERTY COMPANY LTD" }}</p>
                         </div>
 
+
+
                         <div class="employee-main-content">
                             <div class="photo-container">
                                 {% if employee.photo_thumbnail %}
@@ -353,7 +355,7 @@
                             </div>
     
                             <p class="employee-name">{{ employee.full_name }}</p>
-                            <p class="employee-title">{{ employee.job_title }}</p>
+                            <p class="employee-title">Position: {{ employee.job_title }}</p>
                             
                             <div class="employee-details-front">
                                 <div><strong>ID No:</strong> {{ employee.employee_id }}</div>
@@ -412,13 +414,10 @@
                 <div class="card-body">
                     <h5 class="card-title fw-bold" style="color: var(--hc-red);">Actions</h5>
                     <p class="card-text text-muted small">Download high-resolution images of the ID card, suitable for printing.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-danger text-white" id="download-front-btn">
-                            <i class="fas fa-download me-2"></i>Download Front (PNG)
-                        </button>
-                        <button class="btn btn-warning text-dark" id="download-back-btn">
-                            <i class="fas fa-download me-2"></i>Download Back (PNG)
-                        </button>
+                    <div class="d-grid">
+                        <a href="{% url 'generator:id_card_print' employee.id %}" target="_blank" class="btn btn-danger text-white">
+                            <i class="fas fa-print me-2"></i>Print ID Card
+                        </a>
                     </div>
                     <a href="{% url 'generator:id_card_dashboard' %}" class="btn btn-link mt-2 d-block text-center" style="color: var(--hc-gold);">
                         <i class="fas fa-arrow-left me-2"></i>Back to Employee List

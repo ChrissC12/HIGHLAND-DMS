@@ -7,13 +7,10 @@
 {% block extra_css %}
 <!-- =================================================================== -->
 <!-- STYLES FOR THE FINAL, BRANDED INVOICE PREVIEW -->
-<!-- =aus================================================================ -->
+<!-- =================================================================== -->
 <style>
-    /* This block is intentionally left empty. */
-    /* All styles are now inherited from base.html or Bootstrap for consistency. */
-    /* We will add specific invoice styles here if needed. */
     .invoice-container {
-        background: var(--hc-white); /* Use white from your base template */
+        background: var(--hc-white);
         padding: 2.5rem;
         margin: 0 auto;
         max-width: 8.5in;
@@ -21,19 +18,40 @@
         border: 1px solid #dee2e6;
         font-family: Arial, sans-serif;
         font-size: 10pt;
+        position: relative;
+        overflow: hidden;
     }
+
+    /* Subtle Gold Corner Accents for a premium feel */
+    .invoice-container::before, .invoice-container::after {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, var(--hc-gold, #D4AF37) 0%, rgba(212,175,55,0) 60%);
+        opacity: 0.1;
+        z-index: 0;
+    }
+    .invoice-container::before { top: -50px; left: -50px; }
+    .invoice-container::after { bottom: -50px; right: -50px; }
+
+    .invoice-header, .info-grid, .invoice-table, .total-section, .footer-contact {
+        position: relative; /* Ensure content is on top of the accents */
+        z-index: 1;
+    }
+
     .invoice-header {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid var(--hc-gold); /* Use Gold from your base template */
+        border-bottom: 2px solid var(--hc-gold); /* Gold separator line */
         margin-bottom: 1rem;
     }
     .invoice-title {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--hc-red); /* Use Red from your base template */
+        color: var(--hc-red); /* BRANDING: Red "INVOICE" title */
         text-align: right;
     }
     .info-grid {
@@ -43,8 +61,8 @@
         margin-bottom: 1.5rem;
     }
     .bill-to {
-        background-color: var(--hc-dark); /* Use Dark from your base template */
-        color: var(--hc-white);
+        background-color: var(--hc-dark); /* BRANDING: Dark header */
+        color: var(--hc-gold);             /* BRANDING: Gold text */
         padding: 0.25rem 0.5rem;
         font-weight: bold;
         display: inline-block;
@@ -59,16 +77,11 @@
         padding: 6px 8px;
         font-size: 9pt;
     }
-    .info-box td:first-child {
-        font-weight: bold;
-        background-color: #f2f2f2;
-    }
-    .invoice-table {
-        font-size: 9pt;
-        margin-bottom: 0;
-    }
+    .info-box td:first-child { font-weight: bold; background-color: #f2f2f2; }
+    
+    .invoice-table { font-size: 9pt; margin-bottom: 0; }
     .invoice-table thead th {
-        background-color: var(--hc-dark); /* Dark header */
+        background-color: var(--hc-red); /* BRANDING: Red table headers */
         color: var(--hc-white);
         font-weight: bold;
         text-align: center;
@@ -83,22 +96,8 @@
         justify-content: flex-end;
         margin-top: 1rem;
     }
-    .total-label {
-        font-size: 12pt;
-        font-weight: bold;
-        margin-right: 2rem;
-    }
-    .total-amount {
-        font-size: 12pt;
-        font-weight: bold;
-        border-bottom: 3px double #000;
-        padding-bottom: 2px;
-    }
-    .footer-contact {
-        text-align: center;
-        margin-top: 2rem;
-        font-size: 9pt;
-    }
+    .total-label { font-size: 12pt; font-weight: bold; margin-right: 2rem; }
+    .total-amount { font-size: 12pt; font-weight: bold; border-bottom: 3px double #000; padding-bottom: 2px; }
 </style>
 {% endblock %}
 
@@ -110,7 +109,6 @@
         <p class="lead text-muted">Review the invoice below. If everything is correct, you can download the final PDF.</p>
     </div>
 
-    <!-- The actual invoice preview area -->
     <div class="invoice-container" id="invoice-to-download">
         <!-- Header -->
         <div class="invoice-header">
@@ -120,8 +118,8 @@
                 {% endif %}
                 <h5 class="fw-bold">{{ company_info.name|default:"HIGHLAND COMPANY LTD"|upper }}</h5>
                 <p class="mb-0">P.O.BOX {{ company_info.address|default:"N/A" }}</p>
-                <p class="mb-0">{{ company_info.phone }}</p>
-                <p class="mb-0" style="color: #0000FF;">{{ company_info.email }}</p>
+                <p class="mb-0">{{ company_info.phone|default:"N/A" }}</p>
+                <p class="mb-0" style="color: #0000FF;">{{ company_info.email|default:"N/A" }}</p>
             </div>
             <div class="bank-details text-end">
                 <p class="invoice-title">INVOICE</p>
@@ -207,8 +205,8 @@
     
     <!-- Action Buttons -->
     <div class="text-center mt-4">
-        <a href="{% url 'generator:download_invoice_pdf' invoice.id %}" class="btn btn-danger text-white btn-lg">
-            <i class="fas fa-file-pdf me-2"></i>Download as PDF
+        <a href="{% url 'generator:invoice_print' invoice.id %}" target="_blank" class="btn btn-danger text-white btn-lg">
+            <i class="fas fa-print me-2"></i>Print Invoice
         </a>
         <a href="{% url 'generator:invoice_dashboard' %}" class="btn btn-secondary btn-lg">Back to Dashboard</a>
     </div>

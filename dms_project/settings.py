@@ -58,6 +58,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'generator.context_processors.company_info_processor',
             ],
         },
     },
@@ -90,3 +91,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media_files')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = 'generator:id_card_dashboard'
+LOGOUT_REDIRECT_URL = 'login' 

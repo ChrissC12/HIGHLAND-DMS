@@ -1,7 +1,4 @@
-# render.yaml
-
-services:
-  # 1. The Web Service (your Django app)
+ # 1. The Web Service (your Django app)
   - type: web
     name: highland-dms
     runtime: python
@@ -22,7 +19,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.8.10
 
-  # 2. The PostgreSQL Database
+  # 2. The PostgreSQL Database for production
   - type: psql
     name: highland-db
-    plan: free # The free tier is great for starting out
+    plan: free

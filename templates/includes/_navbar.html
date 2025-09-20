@@ -1,36 +1,57 @@
-<!-- templates/includes/_navbar.html -->
 {% load static %}
 
-<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{% url 'generator:id_card_dashboard' %}">
-            <i class="fas fa-landmark me-2 text-danger"></i>Highland DMS
+        <!-- ============================================= -->
+        <!-- DYNAMIC BRAND LOGO AND NAME -->
+        <!-- ============================================= -->
+        <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'generator:id_card_dashboard' %}">
+            {% if company_info and company_info.logo_thumbnail %}
+                <!-- Use the resized thumbnail for performance -->
+                <img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo" style="height: 40px; margin-right: 10px;">
+            {% else %}
+                <!-- Fallback icon if no logo is uploaded -->
+                <i class="fas fa-landmark me-2 text-danger"></i>
+            {% endif %}
+            
+            <!-- Use the company name from the database, with a fallback -->
+            <span>{{ company_info.name|default:"Highland DMS" }}</span>
         </a>
+        
+        <!-- Mobile Menu Toggle -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+        
+        <!-- ============================================= -->
+        <!-- NAVIGATION LINKS (RIGHT ALIGNED) -->
+        <!-- ============================================= -->
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'generator:id_card_dashboard' %}">Dashboard</a>
                 </li>
-                
-                <!-- ============================================= -->
-                <!-- NEW DROPDOWN FOR DOCUMENTS -->
-                <!-- ============================================= -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Documents
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'generator:id_card_dashboard' %}">ID Cards</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'generator:employee_list_dashboard' %}">Employee Cards</a></li>
                         <li><a class="dropdown-item" href="{% url 'generator:invoice_dashboard' %}">Invoices</a></li>
-                        <li><a class="dropdown-item" href="#">Business Cards</a></li>
                     </ul>
                 </li>
-                
-                <li class="nav-item">
-                     <a class="nav-link" href="/admin/">Admin Panel</a>
+                <!-- ============================================= -->
+<!-- THIS IS THE FIX: HIDE THE LINK CONDITIONALLY -->
+<!-- ============================================= -->
+{% if user.is_superuser %}
+<li class="nav-item">
+     <a class="nav-link" href="/admin/">Admin Panel</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'logout' %}">Logout</a>
+</li>
                 </li>
             </ul>
         </div>

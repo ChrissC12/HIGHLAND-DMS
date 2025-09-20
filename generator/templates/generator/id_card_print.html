@@ -1,0 +1,375 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Print ID Card - {{ employee.employee_id }}</title>
+    <style>
+        /*
+        ===================================================================
+        STYLES FOR THE FINAL, PRINT-READY PVC CARD
+        This CSS precisely matches the final preview design.
+        ===================================================================
+        */
+        :root {
+            --hc-white: #FFFFFF;
+            --hc-gold: #D4AF37;
+            --hc-red: #C0392B;
+            --hc-dark: #2C3E50;
+            --hc-border-color: #e0e0e0;
+            --card-width: 2.125in;   /* Standard ID card width */
+            --card-height: 3.375in;  /* Standard ID card height */
+        }
+        
+        /* Defines the exact size of the printed page */
+        @page {
+            size: var(--card-width) var(--card-height);
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #FFFFFF !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            width: var(--card-width);
+            height: var(--card-height);
+        }
+        
+        .print-card {
+            width: var(--card-width);
+            height: var(--card-height);
+            overflow: hidden;
+            position: relative;
+            page-break-after: always;
+            box-sizing: border-box;
+        }
+        .print-card:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Front Side Styling - MATCHES PREVIEW */
+        .id-card-front {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+        }
+        
+        .id-card-front .header-section {
+            padding: 0.2in 0.1in 0.1in 0.1in;
+            background: linear-gradient(to right, var(--hc-red), #a5281e);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            min-height: 0.4in;
+        }
+        
+        .id-card-front .header-section::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0.02in;
+            background: var(--hc-gold);
+        }
+        
+        .id-card-front .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.02in;
+        }
+        
+        .id-card-front .company-logo {
+            height: 0.4in;
+            width: 0.4in;
+            border-radius: 60%;
+            margin: 0 auto;
+            object-fit: cover;
+            box-shadow: 0 0.02in 0.06in rgba(0,0,0,0.3);
+        }
+        
+        .id-card-front .company-name {
+            font-size: 0.12in;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            margin: 0;
+            text-shadow: 0 0.01in 0.02in rgba(0,0,0,0.2);
+            padding: 0 0.05in;
+        }
+        
+        .id-card-front .employee-main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.12in 0.03in;
+        }
+        
+        .id-card-front .photo-container {
+            position: relative;
+            margin-bottom: 0.1in;
+        }
+        
+        .id-card-front .photo {
+            width: 0.9in;
+            height: 0.9in;
+            border-radius: 50%;
+            border: 0.03in solid var(--hc-gold);
+            object-fit: cover;
+            box-shadow: 0 0.04in 0.1in rgba(0,0,0,0.15);
+            background: white;
+        }
+        
+        .id-card-front .employee-name {
+            font-size: 0.15in;
+            font-weight: 700;
+            color: var(--hc-dark);
+            margin: 0 0 0.03in 0;
+            line-height: 1.2;
+        }
+        
+        .id-card-front .employee-title {
+            font-size: 0.1in;
+            color: #666;
+            margin: 0 0 0.12in 0;
+            font-weight: 500;
+            padding: 0.03in 0.1in;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 0.1in;
+        }
+        
+        .id-card-front .employee-details-front {
+            font-size: 0.09in;
+            line-height: 1.6;
+            color: #444;
+            text-align: left;
+            width: 100%;
+            max-width: 1.6in;
+            margin-bottom: 0.08in;
+        }
+        
+        .id-card-front .employee-details-front strong {
+            color: var(--hc-dark);
+            font-weight: 600;
+            display: inline-block;
+            width: 0.65in;
+        }
+        
+        .id-card-front .footer-bar {
+            width: 100%;
+            height: 0.2in;
+            background: linear-gradient(to right, var(--hc-red), #a5281e);
+            position: relative;
+        }
+        
+        .id-card-front .footer-bar::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0.03in;
+            background: var(--hc-gold);
+        }
+
+        /* Back Side Styling - MATCHES PREVIEW */
+        .id-card-back {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 0.15in;
+            box-sizing: border-box;
+            font-size: 0.09in;
+            line-height: 1.5;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .id-card-back::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0.05in;
+            background: linear-gradient(to right, var(--hc-red), #a5281e);
+        }
+        
+        .id-card-back .header-text {
+            font-size: 0.11in;
+            font-weight: 800;
+            color: var(--hc-red);
+            text-align: center;
+            margin: 0.1in 0 0.15in 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            padding-bottom: 0.05in;
+        }
+        
+        .id-card-back .header-text::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            right: 25%;
+            height: 0.02in;
+            background: var(--hc-gold);
+        }
+        
+        .id-card-back .qr-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.15in;
+        }
+        
+        .id-card-back .qr-code {
+            width: 0.8in;
+            height: 0.8in;
+            border: 0.01in solid var(--hc-border-color);
+            padding: 0.05in;
+            background: white;
+            box-shadow: 0 0.02in 0.05in rgba(0,0,0,0.1);
+        }
+        
+        .id-card-back .info {
+            text-align: center;
+            margin-bottom: 0.15in;
+            font-style: italic;
+            color: #555;
+            padding: 0 0.05in;
+        }
+        
+        .id-card-back .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 0.1in;
+            border-top: 0.01in dashed var(--hc-border-color);
+        }
+        
+        .id-card-back .signature {
+            font-size: 0.08in;
+            text-align: center;
+            width: 48%;
+        }
+        
+        .id-card-back .signature-line {
+            border-top: 0.01in solid #999;
+            margin: 0.03in 0;
+            padding-top: 0.02in;
+        }
+        
+        .id-card-back .footer {
+            font-size: 0.07in;
+            text-align: center;
+            margin-top: 0.1in;
+            padding-top: 0.08in;
+            border-top: 0.01in solid var(--hc-border-color);
+            color: #777;
+        }
+    </style>
+</head>
+<body onload="window.print(); window.onafterprint = window.close;">
+
+    <!-- ============================================= -->
+    <!-- FRONT OF THE CARD (FIRST PAGE FOR PRINTER) -->
+    <!-- ============================================= -->
+    <div class="print-card">
+        <div class="id-card-front">
+            <div class="header-section">
+                <div class="logo-container">
+                    {% if company_info.logo_thumbnail %}
+                    <img src="{{ company_info.logo_thumbnail.url }}" class="company-logo" alt="Logo">
+                    {% else %}
+                    <div class="company-logo" style="background: var(--hc-gold); display: flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-weight: bold; font-size: 0.16in;">HPC</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="company-name">{{ company_info.name|default:"HIGHLAND PROPERTY COMPANY LTD" }}</p>
+            </div>
+
+            <div class="employee-main-content">
+                <div class="photo-container">
+                    {% if employee.photo_thumbnail %}
+                    <img src="{{ employee.photo_thumbnail.url }}" class="photo" alt="{{ employee.full_name }}">
+                    {% else %}
+                    <div class="photo" style="background: #eee; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: #999; font-size: 0.11in;">No Photo</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <p class="employee-name">{{ employee.full_name }}</p>
+                <p class="employee-title">Position: {{ employee.job_title }}</p>
+                
+                <div class="employee-details-front">
+                    <div><strong>ID No:</strong> {{ employee.employee_id }}</div>
+                    <div><strong>Dept:</strong> {{ employee.department }}</div>
+                    <div><strong>Issue Date:</strong> {% now "m/d/Y" %}</div>
+                </div>
+            </div>
+
+            <div class="footer-bar"></div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- BACK OF THE CARD (SECOND PAGE FOR PRINTER) -->
+    <!-- ============================================= -->
+    <div class="print-card">
+        <div class="id-card-back">
+            <div class="header-text">EMPLOYEE IDENTIFICATION</div>
+            
+            <div class="qr-container">
+                {% if employee.qr_code %}
+                <img src="{{ employee.qr_code.url }}" class="qr-code" alt="QR Code">
+                {% else %}
+                <div class="qr-code" style="display:flex; align-items:center; justify-content:center; color:#aaa; font-size:0.1in;">
+                    QR Code
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="info">
+                This card verifies the identity of the holder as an authorized employee of {{ company_info.name|default:"Highland Company Ltd" }}.
+            </div>
+
+            <div class="signature-area">
+                <div class="signature">
+                    <div class="signature-line"></div>
+                    Employee Signature
+                </div>
+                <div class="signature">
+                    <div class="signature-line"></div>
+                    Authorized Signatory
+                </div>
+            </div>
+
+            <div class="footer">
+                If found, please return to our nearest office.<br>
+                {{ company_info.address|default:"1247, Dodoma" }}<br>
+                Tel: {{ company_info.phone|default:"+255 759 016 713" }}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

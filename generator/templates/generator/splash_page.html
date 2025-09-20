@@ -1,0 +1,82 @@
+<!-- generator/templates/generator/splash_page.html -->
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Welcome - Highland DMS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* We hide the default navbar on the splash page */
+.navbar {
+display: none;
+}
+.splash-container {
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 90vh;
+background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+.login-card {
+max-width: 450px;
+width: 100%;
+border-radius: 1rem;
+box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+border: none;
+}
+.login-card-header {
+text-align: center;
+padding: 2rem;
+}
+.login-card-header img {
+height: 80px;
+margin-bottom: 1rem;
+}
+.login-card-header h2 {
+font-weight: 700;
+color: var(--hc-dark);
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="splash-container">
+<div class="card login-card">
+<div class="login-card-header">
+{% if company_info.logo_thumbnail %}
+<img src="{{ company_info.logo_thumbnail.url }}" alt="{{ company_info.name }} Logo">
+{% endif %}
+<h2>{{ company_info.name|default:"Highland DMS" }}</h2>
+<p class="text-muted">Please sign in to continue</p>
+</div>
+<div class="card-body p-4">
+{% if form.non_field_errors %}
+<div class="alert alert-danger" role="alert">
+Please enter a correct username and password.
+</div>
+{% endif %}
+    
+<form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+                <input type="text" name="username" class="form-control" id="id_username" placeholder="Username" required autofocus>
+                <label for="id_username">Username</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="password" name="password" class="form-control" id="id_password" placeholder="Password" required>
+                <label for="id_password">Password</label>
+            </div>
+            <div class="d-grid mt-4">
+                <button class="btn btn-danger btn-lg text-white" type="submit">Sign In</button>
+            </div>
+            <input type="hidden" name="next" value="{% url 'generator:id_card_dashboard' %}">
+        </form>
+    </div>
+</div>
+
+  
+
+</div>
+{% endblock %}
